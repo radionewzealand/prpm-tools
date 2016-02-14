@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+
+require "bundler/setup"
+require "prpmtools"
+require 'nokogiri'
+require 'open-uri'
+require 'json'
+
+html_data = open('http://www.useragentstring.com/pages/Crawlerlist/').read
+nokogiri_object = Nokogiri::HTML(html_data)
+elements = nokogiri_object.xpath("//h3")
+
+data = elements.map{ |el| el.text }
+
+data_file_path = File.expand_path(File.join(File.dirname(File.expand_path(__FILE__)),'..','lib','bot_filter','bot_data.json'))
+
+puts 'Writing bot data to: ' + data_file_path
+
+File.open(data_file_path, 'w') do |file|
+  file.write(JSON.generate(data))
+end

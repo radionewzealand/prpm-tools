@@ -1,0 +1,61 @@
+#!/usr/bin/env ruby
+
+require "bundler/setup"
+require 'optparse'
+require 'ostruct'
+require "prpmtools"
+
+include PrpmTools
+
+# the default options
+options = OpenStruct.new
+options.directory = ''
+options.log_type = nil
+options.cleanup = false
+
+ARGV.options do |o|
+  script_name = File.basename($0)
+
+  o.set_summary_indent('  ')
+  o.banner =    "Usage: #{script_name} directory_name [OPTIONS]"
+  o.define_head "Scan a specified directory for logs and process them"
+  o.separator   ""
+
+  o.on("-v", "--log-type=",
+       "Select the format of the log file",
+       "Default: #{options.log_type}")  { |log_type| options.log_type = log_type }
+
+  o.on("-c", "--cleanup",
+       "Remove files after processing",
+       "Default: #{options.cleanup}")  { |cleanup| options.cleanup = cleanup }
+
+  o.separator ""
+
+  o.on_tail("-h", "--help", "Show this help message.") { puts o; exit }
+
+  o.parse!
+end
+
+date_format = '%d/%b/%Y:%H:%M:%S %z'
+
+case options.log_type
+when nil
+  puts 'Enter a log type'
+when 'nginx'
+  line_parser = NginxLogLineParser
+when 'triton'
+  line_parser = TritonLogLineParser
+when 'akamai'
+  line_parser = AkamaiLogLineParser
+  date_format = '%Y-%m-%d %H:%M:%S'
+else
+  puts 'Enter a valid log type'
+end
+
+ARGF.each do |line|
+      if data = line_parser.new(line).parse
+        if data = LineFilter.new(BotFilter.new, RnzShowParser.new).filter(data, date_format)
+          puts %Q[#{data[:date]},#{data[:downloader_uid]},#{data[:download_uid]},#{data[:show_code]},#{data[:status]},#{data[:bytes_sent]},#{data[:url]}]
+        end
+      end
+end
