@@ -1,10 +1,13 @@
 # Public Radio Podcast Measurement Tools
 
-NB: This tool is still under heavy development - feedback is invited. The gem will be released in due course.
-
 This gem contains tools for parsing logs according to the PRPM Guidelines:
 
 https://docs.google.com/document/d/1qMORNRNyAR3L_03VYlvZK9dpKMk_d7pUxCnJfeKgVn0/edit
+
+To install:
+
+gem install prpm-tools
+
 
 The tools can be used from the command line via:
 
